@@ -1,0 +1,160 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Minecraft', 'Courier New', monospace;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+}
+
+#loading, #menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 1000;
+}
+
+#loading h1, #menu h1 {
+    font-size: 4rem;
+    text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+}
+
+#loading p, #menu p {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+}
+
+#startButton {
+    padding: 20px 40px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    background: #4CAF50;
+    color: white;
+    border: 4px solid #2E7D32;
+    cursor: pointer;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+    transition: all 0.1s;
+}
+
+#startButton:hover {
+    background: #66BB6A;
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.3);
+}
+
+#startButton:active {
+    transform: translateY(2px);
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+#controls {
+    margin-top: 30px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: left;
+}
+
+#controls h3 {
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+}
+
+#controls ul {
+    list-style: none;
+}
+
+#controls li {
+    margin: 8px 0;
+    font-size: 1.1rem;
+}
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+    z-index: 100;
+}
+
+#crosshair::before,
+#crosshair::after {
+    content: '';
+    position: absolute;
+    background: white;
+}
+
+#crosshair::before {
+    width: 2px;
+    height: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#crosshair::after {
+    width: 20px;
+    height: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#block-selector {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 50;
+}
+
+.block-option {
+    padding: 10px 20px;
+    background: #555;
+    border: 2px solid #888;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+.block-option:hover {
+    background: #666;
+    border-color: #AAA;
+}
+
+.block-option.active {
+    background: #4CAF50;
+    border-color: #66BB6A;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
