@@ -23,19 +23,20 @@ dependencies {
     implementation "org.lwjgl:lwjgl"
     implementation "org.lwjgl:lwjgl-opengl"
     implementation "org.lwjgl:lwjgl-glfw"
+    implementation "org.joml:joml:1.10.5"
 
     // runtime natives for all platforms (these jars contain the native libraries)
-    runtimeOnly "org.lwjgl:lwjgl::$lwjglVersion:natives-windows"
-    runtimeOnly "org.lwjgl:lwjgl::$lwjglVersion:natives-linux"
-    runtimeOnly "org.lwjgl:lwjgl::$lwjglVersion:natives-macos"
+    runtimeOnly "org.lwjgl:lwjgl:${lwjglVersion}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl:${lwjglVersion}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl:${lwjglVersion}:natives-macos"
 
-    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglVersion:natives-windows"
-    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglVersion:natives-linux"
-    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglVersion:natives-macos"
+    runtimeOnly "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-macos"
 
-    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglVersion:natives-windows"
-    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglVersion:natives-linux"
-    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglVersion:natives-macos"
+    runtimeOnly "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-macos"
 }
 
 application {

@@ -16,7 +16,6 @@ export class Input {
         });
         
         window.addEventListener('keyup', (e) => {
-            this.keys[e.key.toLowerCase()] = true;
             this.keys[e.key.toLowerCase()] = false;
             
             // ESC to unlock pointer
