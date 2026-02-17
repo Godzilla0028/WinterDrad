@@ -56,19 +56,105 @@
             pointer-events: none;
             z-index: 1000;
         }
+        #status {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            pointer-events: none;
+            z-index: 1000;
+            text-align: center;
+            border: 2px solid #4CAF50;
+        }
+        #status.inactive {
+            border-color: #ff9800;
+            background: rgba(255, 152, 0, 0.2);
+        }
+        #welcome {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            z-index: 2000;
+            text-align: center;
+            border: 3px solid #4CAF50;
+            max-width: 500px;
+        }
+        #welcome h1 {
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #4CAF50;
+        }
+        #welcome .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        #welcome .button:hover {
+            background: #45a049;
+        }
+        #welcome ul {
+            text-align: left;
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        #welcome li {
+            margin: 8px 0;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
+    
+    <!-- Welcome Screen -->
+    <div id="welcome">
+        <h1>🎮 WinterDrad</h1>
+        <p><strong>A Minecraft-inspired Voxel Game</strong></p>
+        <ul>
+            <li><strong>W A S D</strong> - Move around</li>
+            <li><strong>Mouse</strong> - Look around</li>
+            <li><strong>ESC</strong> - Release mouse control</li>
+        </ul>
+        <div class="button" onclick="document.getElementById('canvas').click(); this.parentElement.classList.add('hidden');">
+            Click to Play!
+        </div>
+    </div>
+    
+    <!-- Info Panel -->
     <div id="info">
         <h2>WinterDrad - Minecraft Voxel Game</h2>
         <p><strong>Controls:</strong></p>
         <p>WASD - Move</p>
         <p>Mouse - Look around</p>
         <p>ESC - Release mouse</p>
-        <p><em>Click on canvas to start</em></p>
     </div>
+    
+    <!-- FPS Counter -->
     <div id="fps">FPS: 0</div>
+    
+    <!-- Status Indicator -->
+    <div id="status" class="inactive">🖱️ Click canvas to start playing</div>
     
     <script type="module" src="js/main.js"></script>
 </body>

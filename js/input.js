@@ -10,6 +10,9 @@ export class Input {
     }
 
     setupEventListeners() {
+        // Status element for UI feedback
+        this.statusElement = document.getElementById('status');
+        
         // Keyboard events
         window.addEventListener('keydown', (e) => {
             this.keys[e.key.toLowerCase()] = true;
@@ -31,6 +34,17 @@ export class Input {
         
         document.addEventListener('pointerlockchange', () => {
             this.isPointerLocked = document.pointerLockElement === this.canvas;
+            
+            // Update status indicator
+            if (this.statusElement) {
+                if (this.isPointerLocked) {
+                    this.statusElement.textContent = '🎮 Playing - Press ESC to release mouse';
+                    this.statusElement.classList.remove('inactive');
+                } else {
+                    this.statusElement.textContent = '🖱️ Click canvas to start playing';
+                    this.statusElement.classList.add('inactive');
+                }
+            }
         });
         
         document.addEventListener('mousemove', (e) => {
