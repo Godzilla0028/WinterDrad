@@ -21,6 +21,9 @@ export class Renderer {
         this.lastCameraPitch = 0;
         this.lastCameraYaw = 0;
         
+        // Pre-allocate MVP matrix to reduce GC pressure
+        this.mvpMatrix = new Float32Array(16);
+        
         this.initGL();
         this.createShaders();
         this.buildMesh();
@@ -292,11 +295,11 @@ export class Renderer {
             view = this.cachedViewMatrix;
         }
         
-        // Calculate MVP matrix
-        const mvp = this.multiplyMatrices(projection, view);
+        // Calculate MVP matrix (reuse pre-allocated array)
+        this.multiplyMatrices(projection, view, this.mvpMatrix);
         
         // Set uniform
-        gl.uniformMatrix4fv(this.mvpLocation, false, mvp);
+        gl.uniformMatrix4fv(this.mvpLocation, false, this.mvpMatrix);
         
         // Bind VAO if available, otherwise set up attributes manually
         if (this.vao) {
@@ -332,8 +335,9 @@ export class Renderer {
         }
     }
 
-    multiplyMatrices(a, b) {
-        const result = new Float32Array(16);
+    multiplyMatrices(a, b, result) {
+        // Optimized matrix multiplication - writes to pre-allocated result array
+        // to reduce garbage collection pressure
         for (let i = 0; i < 4; i++) {
             for (let j = 0; j < 4; j++) {
                 result[i * 4 + j] = 
@@ -343,7 +347,7 @@ export class Renderer {
                     a[i * 4 + 3] * b[3 * 4 + j];
             }
         }
-        return result;
+        return result; // Return for API compatibility
     }
 
     cleanup() {

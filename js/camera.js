@@ -24,11 +24,16 @@ export class Camera {
         const pitchRad = this.pitch * Math.PI / 180;
         const yawRad = this.yaw * Math.PI / 180;
         
-        this.front.x = Math.cos(yawRad) * Math.cos(pitchRad);
-        this.front.y = Math.sin(pitchRad);
-        this.front.z = Math.sin(yawRad) * Math.cos(pitchRad);
+        const cosPitch = Math.cos(pitchRad);
+        const sinPitch = Math.sin(pitchRad);
+        const cosYaw = Math.cos(yawRad);
+        const sinYaw = Math.sin(yawRad);
         
-        // Normalize front
+        this.front.x = cosYaw * cosPitch;
+        this.front.y = sinPitch;
+        this.front.z = sinYaw * cosPitch;
+        
+        // Normalize front (already normalized by trig, but ensure precision)
         const len = Math.sqrt(this.front.x * this.front.x + 
                             this.front.y * this.front.y + 
                             this.front.z * this.front.z);
@@ -37,19 +42,24 @@ export class Camera {
         this.front.z /= len;
         
         // Calculate right vector (cross product of front and world up)
-        const worldUp = { x: 0, y: 1, z: 0 };
-        this.right.x = this.front.y * worldUp.z - this.front.z * worldUp.y;
-        this.right.y = this.front.z * worldUp.x - this.front.x * worldUp.z;
-        this.right.z = this.front.x * worldUp.y - this.front.y * worldUp.x;
+        // Optimized for worldUp = (0, 1, 0): front × (0,1,0) = (-front.z, 0, front.x)
+        this.right.x = -this.front.z;
+        this.right.y = 0;
+        this.right.z = this.front.x;
         
         const rightLen = Math.sqrt(this.right.x * this.right.x + 
-                                  this.right.y * this.right.y + 
                                   this.right.z * this.right.z);
-        this.right.x /= rightLen;
-        this.right.y /= rightLen;
-        this.right.z /= rightLen;
+        // Guard against division by zero when looking straight up/down
+        if (rightLen > 0.0001) {
+            this.right.x /= rightLen;
+            this.right.z /= rightLen;
+        } else {
+            // Fallback to a reasonable default
+            this.right.x = 1;
+            this.right.z = 0;
+        }
         
-        // Calculate up vector
+        // Calculate up vector (right × front)
         this.up.x = this.right.y * this.front.z - this.right.z * this.front.y;
         this.up.y = this.right.z * this.front.x - this.right.x * this.front.z;
         this.up.z = this.right.x * this.front.y - this.right.y * this.front.x;
