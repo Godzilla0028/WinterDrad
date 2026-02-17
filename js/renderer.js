@@ -12,6 +12,15 @@ export class Renderer {
             throw new Error('WebGL not supported');
         }
         
+        // Cache for optimization
+        this.lastCanvasWidth = 0;
+        this.lastCanvasHeight = 0;
+        this.cachedProjectionMatrix = null;
+        this.cachedViewMatrix = null;
+        this.lastCameraPosition = { x: 0, y: 0, z: 0 };
+        this.lastCameraPitch = 0;
+        this.lastCameraYaw = 0;
+        
         this.initGL();
         this.createShaders();
         this.buildMesh();
@@ -20,6 +29,9 @@ export class Renderer {
     initGL() {
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE); // Enable backface culling
+        gl.cullFace(gl.BACK); // Cull back faces
+        gl.frontFace(gl.CCW); // Counter-clockwise front faces
         gl.clearColor(0.53, 0.81, 0.92, 1.0); // Sky blue
     }
 
@@ -164,6 +176,44 @@ export class Renderer {
         this.vbo = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
         gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
+        
+        // Create VAO (Vertex Array Object) for better performance
+        // Use extension for WebGL1, native for WebGL2
+        if (gl.createVertexArray) {
+            // WebGL2
+            this.vao = gl.createVertexArray();
+            gl.bindVertexArray(this.vao);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+            
+            const stride = 6 * 4; // 6 floats * 4 bytes
+            gl.vertexAttribPointer(this.positionLocation, 3, gl.FLOAT, false, stride, 0);
+            gl.enableVertexAttribArray(this.positionLocation);
+            
+            gl.vertexAttribPointer(this.colorLocation, 3, gl.FLOAT, false, stride, 3 * 4);
+            gl.enableVertexAttribArray(this.colorLocation);
+            
+            gl.bindVertexArray(null);
+        } else {
+            // WebGL1 - try to use VAO extension
+            const ext = gl.getExtension('OES_vertex_array_object');
+            if (ext) {
+                this.vao = ext.createVertexArrayOES();
+                ext.bindVertexArrayOES(this.vao);
+                
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+                
+                const stride = 6 * 4;
+                gl.vertexAttribPointer(this.positionLocation, 3, gl.FLOAT, false, stride, 0);
+                gl.enableVertexAttribArray(this.positionLocation);
+                
+                gl.vertexAttribPointer(this.colorLocation, 3, gl.FLOAT, false, stride, 3 * 4);
+                gl.enableVertexAttribArray(this.colorLocation);
+                
+                ext.bindVertexArrayOES(null);
+                this.vaoExt = ext;
+            }
+        }
     }
 
     isTransparent(x, y, z) {
@@ -190,15 +240,19 @@ export class Renderer {
     render(camera) {
         const gl = this.gl;
         
-        // Resize canvas if needed
-        if (this.canvas.width !== this.canvas.clientWidth || 
-            this.canvas.height !== this.canvas.clientHeight) {
-            this.canvas.width = this.canvas.clientWidth;
-            this.canvas.height = this.canvas.clientHeight;
-            gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        // Resize canvas if needed (only when size actually changed)
+        const clientWidth = this.canvas.clientWidth;
+        const clientHeight = this.canvas.clientHeight;
+        if (this.canvas.width !== clientWidth || this.canvas.height !== clientHeight) {
+            this.canvas.width = clientWidth;
+            this.canvas.height = clientHeight;
+            gl.viewport(0, 0, clientWidth, clientHeight);
             
-            // Update camera aspect ratio
-            camera.aspect = this.canvas.width / this.canvas.height;
+            // Update camera aspect ratio and invalidate projection matrix cache
+            camera.aspect = clientWidth / clientHeight;
+            this.cachedProjectionMatrix = null;
+            this.lastCanvasWidth = clientWidth;
+            this.lastCanvasHeight = clientHeight;
         }
         
         // Clear
@@ -207,27 +261,75 @@ export class Renderer {
         // Use shader
         gl.useProgram(this.program);
         
+        // Check if camera has changed to decide if we need to recalculate matrices
+        const cameraChanged = 
+            this.lastCameraPosition.x !== camera.position.x ||
+            this.lastCameraPosition.y !== camera.position.y ||
+            this.lastCameraPosition.z !== camera.position.z ||
+            this.lastCameraPitch !== camera.pitch ||
+            this.lastCameraYaw !== camera.yaw;
+        
+        // Get or calculate projection matrix
+        let projection;
+        if (!this.cachedProjectionMatrix) {
+            projection = camera.getProjectionMatrix();
+            this.cachedProjectionMatrix = projection;
+        } else {
+            projection = this.cachedProjectionMatrix;
+        }
+        
+        // Get or calculate view matrix
+        let view;
+        if (cameraChanged || !this.cachedViewMatrix) {
+            view = camera.getViewMatrix();
+            this.cachedViewMatrix = view;
+            this.lastCameraPosition.x = camera.position.x;
+            this.lastCameraPosition.y = camera.position.y;
+            this.lastCameraPosition.z = camera.position.z;
+            this.lastCameraPitch = camera.pitch;
+            this.lastCameraYaw = camera.yaw;
+        } else {
+            view = this.cachedViewMatrix;
+        }
+        
         // Calculate MVP matrix
-        const projection = camera.getProjectionMatrix();
-        const view = camera.getViewMatrix();
         const mvp = this.multiplyMatrices(projection, view);
         
         // Set uniform
         gl.uniformMatrix4fv(this.mvpLocation, false, mvp);
         
-        // Bind buffer
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
-        
-        // Setup attributes
-        const stride = 6 * 4; // 6 floats * 4 bytes
-        gl.vertexAttribPointer(this.positionLocation, 3, gl.FLOAT, false, stride, 0);
-        gl.enableVertexAttribArray(this.positionLocation);
-        
-        gl.vertexAttribPointer(this.colorLocation, 3, gl.FLOAT, false, stride, 3 * 4);
-        gl.enableVertexAttribArray(this.colorLocation);
+        // Bind VAO if available, otherwise set up attributes manually
+        if (this.vao) {
+            if (gl.bindVertexArray) {
+                // WebGL2
+                gl.bindVertexArray(this.vao);
+            } else if (this.vaoExt) {
+                // WebGL1 with extension
+                this.vaoExt.bindVertexArrayOES(this.vao);
+            }
+        } else {
+            // Fallback: manually set up attributes
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+            
+            const stride = 6 * 4; // 6 floats * 4 bytes
+            gl.vertexAttribPointer(this.positionLocation, 3, gl.FLOAT, false, stride, 0);
+            gl.enableVertexAttribArray(this.positionLocation);
+            
+            gl.vertexAttribPointer(this.colorLocation, 3, gl.FLOAT, false, stride, 3 * 4);
+            gl.enableVertexAttribArray(this.colorLocation);
+        }
         
         // Draw
         gl.drawArrays(gl.TRIANGLES, 0, this.vertexCount);
+        
+        // Unbind VAO if used
+        if (this.vao) {
+            if (gl.bindVertexArray) {
+                gl.bindVertexArray(null);
+            } else if (this.vaoExt) {
+                this.vaoExt.bindVertexArrayOES(null);
+            }
+        }
     }
 
     multiplyMatrices(a, b) {
@@ -246,6 +348,13 @@ export class Renderer {
 
     cleanup() {
         const gl = this.gl;
+        if (this.vao) {
+            if (gl.deleteVertexArray) {
+                gl.deleteVertexArray(this.vao);
+            } else if (this.vaoExt) {
+                this.vaoExt.deleteVertexArrayOES(this.vao);
+            }
+        }
         if (this.vbo) gl.deleteBuffer(this.vbo);
         if (this.program) gl.deleteProgram(this.program);
     }

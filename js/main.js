@@ -7,6 +7,9 @@ import { Renderer } from './renderer.js';
 class Game {
     constructor() {
         this.canvas = document.getElementById('canvas');
+        this.fpsElement = document.getElementById('fps');
+        this.frameCount = 0;
+        this.lastFpsUpdate = performance.now();
         this.init();
     }
 
@@ -41,6 +44,16 @@ class Game {
         const now = performance.now() / 1000;
         const delta = now - this.lastTime;
         this.lastTime = now;
+        
+        // Update FPS counter
+        this.frameCount++;
+        const nowMs = performance.now();
+        if (nowMs - this.lastFpsUpdate >= 1000) {
+            const fps = Math.round(this.frameCount * 1000 / (nowMs - this.lastFpsUpdate));
+            this.fpsElement.textContent = `FPS: ${fps}`;
+            this.frameCount = 0;
+            this.lastFpsUpdate = nowMs;
+        }
         
         // Process input
         const mouseMovement = this.input.getMouseMovement();
