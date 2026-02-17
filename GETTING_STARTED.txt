@@ -1,0 +1,70 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║              🎮 WinterDrad - How to Play 🎮                   ║
+║                                                               ║
+║         A Minecraft-inspired browser voxel game!              ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+┌───────────────────────────────────────────────────────────────┐
+│  THE EASIEST WAY TO PLAY                                      │
+└───────────────────────────────────────────────────────────────┘
+
+  Windows Users:
+    → Double-click: play.bat
+  
+  Linux/Mac Users:
+    → Run: ./play.sh
+
+  That's it! The game will open in your browser automatically.
+
+┌───────────────────────────────────────────────────────────────┐
+│  MANUAL METHOD                                                │
+└───────────────────────────────────────────────────────────────┘
+
+  1. Start a web server:
+     python3 -m http.server 8080
+
+  2. Open browser to:
+     http://localhost:8080
+
+  3. Click "Click to Play!" button
+
+┌───────────────────────────────────────────────────────────────┐
+│  CONTROLS                                                     │
+└───────────────────────────────────────────────────────────────┘
+
+  W A S D  →  Move around
+  Mouse    →  Look around (after clicking canvas)
+  ESC      →  Release mouse control
+
+┌───────────────────────────────────────────────────────────────┐
+│  NEED HELP?                                                   │
+└───────────────────────────────────────────────────────────────┘
+
+  See these files:
+  • HOW_TO_PLAY.md     - Visual guide with screenshots
+  • README.md          - Full documentation
+  • OPTIMIZATIONS.md   - Performance details
+
+┌───────────────────────────────────────────────────────────────┐
+│  TROUBLESHOOTING                                              │
+└───────────────────────────────────────────────────────────────┘
+
+  Game doesn't load?
+    → Use Chrome or Firefox browser
+    → Make sure WebGL is enabled
+
+  Can't look around?
+    → Click the canvas first!
+    → Check status bar at bottom
+
+  Script doesn't work?
+    → Install Python from python.org
+    → Or use: npx http-server -p 8080
+
+═══════════════════════════════════════════════════════════════
+
+                    Enjoy the game! 🎮✨
+
+═══════════════════════════════════════════════════════════════
