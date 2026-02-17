@@ -1,0 +1,100 @@
+plugins {
+    id 'application'
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+ext {
+    lwjglVersion = "3.3.2"
+}
+
+dependencies {
+    implementation platform("org.lwjgl:lwjgl-bom:${lwjglVersion}")
+    implementation "org.lwjgl:lwjgl"
+    implementation "org.lwjgl:lwjgl-opengl"
+    implementation "org.lwjgl:lwjgl-glfw"
+    implementation "org.joml:joml:1.10.5"
+
+    // runtime natives for all platforms (these jars contain the native libraries)
+    runtimeOnly "org.lwjgl:lwjgl:${lwjglVersion}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl:${lwjglVersion}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl:${lwjglVersion}:natives-macos"
+
+    runtimeOnly "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-opengl:${lwjglVersion}:natives-macos"
+
+    runtimeOnly "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-glfw:${lwjglVersion}:natives-macos"
+}
+
+application {
+    mainClass = "com.voxel.Main"
+}
+
+// Shadow jar config (produces <project>-all.jar)
+shadowJar {
+    archiveBaseName.set("${project.name}")
+    archiveClassifier.set("all")
+    mergeServiceFiles()
+}
+
+// --- Tasks to extract native libs and create a distributable ZIP ---
+
+// Extract native files from native jars into build/natives
+task extractNatives(type: Copy) {
+    def nativeOut = file("$buildDir/natives")
+    outputs.dir nativeOut
+    doFirst {
+        nativeOut.deleteDir()
+    }
+
+    from {
+        configurations.runtimeClasspath.filter { it.name.contains("natives") }.collect { zipTree(it) }
+    }
+    into nativeOut
+}
+
+// Build a distribution ZIP containing the fat jar, natives, and launch scripts
+task buildDist(type: Zip) {
+    dependsOn shadowJar, extractNatives
+    def outDir = "$buildDir/dist"
+    destinationDirectory = file(outDir)
+
+    // Name the zip with a small identifier
+    archiveFileName = "voxel-distribution.zip"
+
+    // Include the fat jar as app.jar
+    from(shadowJar.archiveFile) {
+        into "voxel"
+        rename { "app.jar" }
+    }
+
+    // Include native libraries (extracted)
+    from("$buildDir/natives") {
+        into "voxel/natives"
+    }
+
+    // Include launch scripts (packaging/run.sh and packaging/run.bat)
+    from("packaging/run.sh") {
+        into "voxel"
+        fileMode = 0755
+    }
+    from("packaging/run.bat") {
+        into "voxel"
+    }
+}
+
+// Convenience: make buildDist run as part of `assemble` if you like
+assemble.dependsOn buildDist
